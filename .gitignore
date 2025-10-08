@@ -2,3 +2,5 @@
 *.csv
 # User-Agent
 .env
+# Python-related files
+__pycache__
