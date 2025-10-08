@@ -1,14 +1,17 @@
 import requests
 import dotenv
 import os
-import asyncio
 import csv
 from bs4 import BeautifulSoup
 from lxml import etree
 
+# The form URL to submit to
 FORM_URL = 'https://www.treasurydirect.gov/BC/SBCPrice'
+# The URL listed under the form's action property, may differ
 ACTION_URL = 'https://www.treasurydirect.gov/BC/SBCPrice'
+# The XPath of the form's hidden inputs
 HIDDENS_FORM_XPATH = '//*[@id="content"]/form/fieldset'
+# The XPath of a table on the page
 TABLE_XPATH = '//*[@id="content"]/form/table'
 
 # Set headers
