@@ -1,7 +1,9 @@
+import random
 import requests
 import dotenv
 import os
 import csv
+import sys
 from bs4 import BeautifulSoup
 from lxml import etree
 
@@ -77,3 +79,25 @@ def most_recent(dom, xpath):
     return {column: cell for column, cell in
         zip(table_columns(dom, xpath),
         table_row(dom, 0, xpath))}
+
+# Generator to use the form
+def use_form(bonds):
+    header = headers()
+    page = initial_page(FORM_URL, headers)
+    dom = get_dom(page)
+    hiddens = form_hiddens(dom, HIDDENS_FORM_XPATH)
+    rand = random.Random()
+    for bond in bonds:
+        sleep(rand.uniform(1, 3))
+        page = check_bond(bond_request_data(bond, hiddens))
+        dom = get_dom(page)
+        hiddens = form_hiddens(dom, HIDDENS_FORM_XPATH)
+        yield most_recent(dom, TABLE_XPATH)
+
+# Check bonds from stdin
+def check_bonds_from_stdin():
+    yield from use_form(csv.DictReader(sys.stdin))
+
+if __name__ == "__main__":
+    for bond in check_bonds_from_stdin:
+        print_bond(bond)
