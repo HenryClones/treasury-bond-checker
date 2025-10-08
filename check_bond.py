@@ -33,8 +33,8 @@ def use_form(bonds):
 
 # Check bonds from stdin
 def check_bonds_from_stdin():
-    reader, fieldnames = clean_read()
-    writer = clean_write(sys.stdout, fieldnames)
+    reader, _ = clean_read()
+    writer = clean_write(sys.stdout)
     for bond in use_form(reader):
         writer(bond)
 

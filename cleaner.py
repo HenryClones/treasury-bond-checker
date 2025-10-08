@@ -40,5 +40,5 @@ def clean_read():
         yield from csv.DictReader(sys.stdin, fieldnames)
     return callback, fieldnames
 
-def clean_write(f, fieldnames):
-    return csv.DictWriter(f, fieldnames)
+def clean_write(f):
+    return csv.DictWriter(f)
