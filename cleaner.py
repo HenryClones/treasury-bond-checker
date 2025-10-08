@@ -11,6 +11,8 @@ def fieldname(label):
         return 'Denomination'
     elif re.search('^(EE|E|I|SN)$'):
         return 'Series'
+    elif re.search('^[0-9][0-9]/[0-9][0-9][0-9][0-9]$'):
+        return 'IssueDate'
     else:
         return False
 
@@ -18,8 +20,8 @@ def fieldname(label):
 def get_fieldnames(line):
     # Generate fieldnames for each column
     fieldnames = [fieldname(field) for field in line]
-    # Trust the user if there are >3 columns or header names
-    if len(fieldnames) > 3 or not all(fieldnames):
+    # Trust the user if there are >4 columns or header names
+    if len(fieldnames) > 4 or not all(fieldnames):
         return line, False
     else:
         return fieldnames, True
@@ -31,8 +33,8 @@ def clean_read():
         return
     header_reader = csv.reader(io.StringIO(header_line))
     first_line = next(header_reader)
-    if len(first_line) < 3:
-        raise IndexError('Requires a series, denomination, and serial number')
+    if len(first_line) < 4:
+        raise IndexError('Requires a series, denomination, issue date, and serial number')
     fieldnames, no_header = get_fieldnames(first_line)
     def callback():
         if no_header:
