@@ -2,6 +2,7 @@ import random
 import requests
 import dotenv
 import os
+import sys
 from bs4 import BeautifulSoup
 from lxml import etree
 import scrapehelpers
@@ -32,8 +33,10 @@ def use_form(bonds):
 
 # Check bonds from stdin
 def check_bonds_from_stdin():
-    yield from use_form(clean_read())
+    reader, fieldnames = clean_read()
+    writer = clean_write(sys.stdout, fieldnames)
+    for bond in use_form(reader):
+        writer(bond)
 
 if __name__ == "__main__":
-    for bond in check_bonds_from_stdin:
-        clean_write(bond)
+    check_bonds_from_stdin()

@@ -34,9 +34,11 @@ def clean_read():
     if len(first_line) < 3:
         raise IndexError('Requires a series, denomination, and serial number')
     fieldnames, no_header = get_fieldnames(first_line)
-    if no_header:
-        yield first_line
-    yield from csv.DictReader(sys.stdin, fieldnames)
+    def callback():
+        if no_header:
+            yield first_line
+        yield from csv.DictReader(sys.stdin, fieldnames)
+    return callback, fieldnames
 
-def clean_write():
-    pass
+def clean_write(f, fieldnames):
+    return csv.DictWriter(f, fieldnames)
