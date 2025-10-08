@@ -1,0 +1,4 @@
+# Input/output files
+*.csv
+# API key
+.env
