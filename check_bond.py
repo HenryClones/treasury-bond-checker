@@ -17,15 +17,15 @@ TABLE_XPATH = '//*[@id="content"]/form/table'
 
 # Generator to use the form
 def use_form(bonds):
-    header = sh.headers()
-    page = sh.initial_page(FORM_URL, header)
+    session = sh.FormViewer()
+    page = session.initial_page(FORM_URL)
     dom = sh.get_dom(page)
     hiddens = sh.form_hiddens(dom, HIDDENS_FORM_XPATH)
     rand = random.Random()
-    for bond in bonds():
+    for bond in bonds:
         time.sleep(rand.uniform(1, 3))
-        page = sh.check_bond(ACTION_URL,
-            sh.bond_request_data(bond, hiddens), header)
+        page = session.check_bond(ACTION_URL,
+            sh.bond_request_data(bond, hiddens))
         dom = sh.get_dom(page)
         hiddens = sh.form_hiddens(dom, HIDDENS_FORM_XPATH)
         yield sh.top_entry(dom, TABLE_XPATH)
@@ -34,7 +34,7 @@ def use_form(bonds):
 def check_bonds_from_stdin():
     reader, _ = clean_read()
     writer = clean_write(sys.stdout)
-    for bond in use_form(reader):
+    for bond in use_form(reader()):
         writer(bond)
 
 if __name__ == "__main__":
