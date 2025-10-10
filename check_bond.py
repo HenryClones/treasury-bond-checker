@@ -1,13 +1,9 @@
 #!/bin/python3
 
-import random
-import requests
-import dotenv
-import os
 import sys
-from bs4 import BeautifulSoup
-from lxml import etree
-import scrapehelpers
+import random
+import scrapehelpers as sh
+import time
 from cleaner import clean_read, clean_write
 
 # The form URL to submit to
@@ -21,17 +17,18 @@ TABLE_XPATH = '//*[@id="content"]/form/table'
 
 # Generator to use the form
 def use_form(bonds):
-    header = headers()
-    page = initial_page(FORM_URL, headers)
-    dom = get_dom(page)
-    hiddens = form_hiddens(dom, HIDDENS_FORM_XPATH)
+    header = sh.headers()
+    page = sh.initial_page(FORM_URL, header)
+    dom = sh.get_dom(page)
+    hiddens = sh.form_hiddens(dom, HIDDENS_FORM_XPATH)
     rand = random.Random()
-    for bond in bonds:
-        sleep(rand.uniform(1, 3))
-        page = check_bond(bond_request_data(bond, hiddens))
-        dom = get_dom(page)
-        hiddens = form_hiddens(dom, HIDDENS_FORM_XPATH)
-        yield top_entry(dom, TABLE_XPATH)
+    for bond in bonds():
+        time.sleep(rand.uniform(1, 3))
+        page = sh.check_bond(ACTION_URL,
+            sh.bond_request_data(bond, hiddens), header)
+        dom = sh.get_dom(page)
+        hiddens = sh.form_hiddens(dom, HIDDENS_FORM_XPATH)
+        yield sh.top_entry(dom, TABLE_XPATH)
 
 # Check bonds from stdin
 def check_bonds_from_stdin():
