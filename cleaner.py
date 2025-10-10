@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import csv
 import sys
 import io
@@ -5,13 +7,13 @@ import re
 
 # Get the fieldname for a particular column, based on first line
 def fieldname(label):
-    if re.search('^[A-Z][0-9]+(EE|E|I|SN)?$', label):
+    if re.search(r'^[A-Z][0-9]+(EE|E|I|SN)?$', label):
         return 'SerialNumber'
-    elif re.search('^\$?(10|25|50|75|100|200|500|1000|5000|10000)$'):
+    elif re.search(r'^\$?([27]5|10{1,4}|50{1,3}|200)$', label):
         return 'Denomination'
-    elif re.search('^(EE|E|I|SN)$'):
+    elif re.search(r'^(EE|E|I|SN)$', label):
         return 'Series'
-    elif re.search('^[0-9][0-9]/[0-9][0-9][0-9][0-9]$'):
+    elif re.search(r'^[0-9]{2}/[0-9]{4}$', label):
         return 'IssueDate'
     else:
         return False
@@ -38,9 +40,16 @@ def clean_read():
     fieldnames, no_header = get_fieldnames(first_line)
     def callback():
         if no_header:
-            yield first_line
+            yield {key: value for key, value in zip(fieldnames, first_line)}
         yield from csv.DictReader(sys.stdin, fieldnames)
     return callback, fieldnames
 
 def clean_write(f):
-    return csv.DictWriter(f)
+    writer = None
+    def callback(obj):
+        nonlocal writer
+        if not writer:
+            fieldnames = obj.keys()
+            writer = csv.DictWriter(f, fieldnames)
+        writer.writerow(obj)
+    return callback
