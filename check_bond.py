@@ -4,6 +4,7 @@ import sys
 import random
 import scrapehelpers as sh
 import time
+from datetime import date
 from cleaner import clean_read, clean_write
 
 # The form URL to submit to
@@ -13,7 +14,7 @@ ACTION_URL = 'https://www.treasurydirect.gov/BC/SBCPrice'
 # The XPath of the form's hidden inputs
 HIDDENS_FORM_XPATH = '//*[@id="content"]/form/fieldset'
 # The XPath of a table on the page
-TABLE_XPATH = '//*[@id="content"]/form/table'
+TABLE_XPATH = "//table[contains(@class, 'bnddata')]"
 
 # Generator to use the form
 def use_form(bonds):
@@ -25,7 +26,9 @@ def use_form(bonds):
     for bond in bonds:
         time.sleep(rand.uniform(1, 3))
         page = session.check_bond(ACTION_URL,
-            sh.bond_request_data(bond, hiddens))
+            sh.bond_request_data(bond, hiddens) |
+            {'RedemptionDate': date.today().strftime('%m/%Y'),
+            'btnAdd.x': 'CALCULATE'})
         dom = sh.get_dom(page)
         hiddens = sh.form_hiddens(dom, HIDDENS_FORM_XPATH)
         yield sh.top_entry(dom, TABLE_XPATH)
