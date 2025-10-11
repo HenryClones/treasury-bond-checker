@@ -51,5 +51,6 @@ def clean_write(f):
         if not writer:
             fieldnames = obj.keys()
             writer = csv.DictWriter(f, fieldnames)
+            writer.writeheader()
         writer.writerow(obj)
     return callback
