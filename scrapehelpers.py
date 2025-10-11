@@ -1,7 +1,7 @@
 #!/bin/python3
 
 from bs4 import BeautifulSoup
-from lxml import etree
+from lxml import html
 import requests
 import dotenv
 import os
@@ -23,28 +23,34 @@ class FormViewer:
         base_object |= {'User-Agent': user_agent}
         headers = base_object | {'Content-Type': 'application/x-www-form-urlencoded'}
         return headers
+    
+    def add_referer(self):
+        self.headers |= {'Referer': self.referer}
 
     # Safely get the bond data with hiddens from a web form
     def check_bond(self, url, request_data):
+        self.add_referer()
         output = self.session.post(url, headers=self.headers, data=request_data)
+        self.referer = url
         return output.content
 
     # Get initial page, which is added to by forms
     def initial_page(self, url):
+        self.add_referer()
         form = self.session.get(url, headers=self.headers)
+        self.referer = url
         return form.content
     
     # Create a session
     def __init__(self, header=None):
         self.session = requests.Session()
         self.headers = self.headers(header)
-
+        self.referer = ''
 
 # Get the DOM of a page
 def get_dom(page):
     soup = BeautifulSoup(page, 'html.parser')
-    dom = etree.HTML(str(soup))
-    print(etree.tostring(dom, pretty_print=True))
+    dom = html.fromstring(str(soup))
     return dom
 
 # Generate the request data for a bond
@@ -61,19 +67,19 @@ def form_hiddens(dom, xpath):
 
 # Get the columns of a table
 def table_columns(dom, xpath):
-    COLUMN_LOCATION = '/thead/tr'
-    table_head = dom.xpath(xpath + COLUMN_LOCATION)[0]
-    return [column.text for column in table_head]
+    COLUMN_LOCATION = '/thead/tr/th'
+    table_head = dom.xpath(xpath + COLUMN_LOCATION)
+    return [column.text_content() for column in table_head if
+        len(column.text_content().strip())]
 
 # Get the row of a table at a specified XPath
-def table_row(dom, index, xpath):
-    TBODY_LOCATION = '/tbody/tr'
-    table_body = dom.xpath(xpath)[0]
-    print(etree.tostring(table_body, pretty_print=True))
-    return [cell.text for cell in table_body[index]]
+def table_row(dom, xpath, index=1):
+    TROW_LOCATION = f"/tbody/tr[{index}]"
+    table_body = dom.xpath(xpath + TROW_LOCATION)[0]
+    return [cell.text_content() for cell in table_body]
 
 # Get top entry from a table as a dictionary
 def top_entry(dom, xpath):
     return {column: cell for column, cell in
         zip(table_columns(dom, xpath),
-        table_row(dom, 0, xpath))}
+        table_row(dom, xpath))}
